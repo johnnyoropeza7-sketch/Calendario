@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calendario del Futuro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#000;--cd:#1c1c1e;--tx:#fff;--mu:#8e8e93;--rd:#ff453a;--gd:#d4af37;--ln:#2c2c2e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,system-ui,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#app{max-width:520px;margin:0 auto;min-height:100vh;padding:0 14px 24px;box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:var(--tx)}
+button{background:var(--cd);border:0;border-radius:12px;padding:13px;cursor:pointer}
+input,select,textarea{background:var(--cd);border:1px solid var(--ln);border-radius:10px;padding:11px;width:100%;box-sizing:border-box;-webkit-user-select:text;user-select:text}
+.sb{display:flex;justify-content:space-between;padding:12px 26px 6px;font-weight:600;font-size:15px}
+.z{position:fixed;width:72px;height:70px;z-index:50}.tl{top:0;left:0}.tr{top:0;right:0}.bl{bottom:0;left:0}.br{bottom:0;right:0}
+.ctr{text-align:center;padding-top:28px}.ctr h1{font-family:Cinzel,Georgia,serif;font-weight:800;letter-spacing:2px;font-size:26px;margin:14px 0 2px;background:linear-gradient(#fff3b8,#d4af37 60%,#8a6a1c);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ctr small{color:var(--mu);letter-spacing:3px;font-size:12px}
+.col{display:grid;gap:10px;margin-top:18px}.gold{background:linear-gradient(#e8c75a,#a8841f);color:#1a1300;font-weight:700}
+.hd{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0}.hd button{background:none;color:var(--rd);font-size:26px;padding:4px 12px}
+.tt{font-size:20px;font-weight:700;text-transform:capitalize;color:var(--tx)!important}
+.wd,.gr{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}.wd{color:var(--mu);font-size:12px;padding:6px 0;border-bottom:1px solid var(--ln)}
+.gr button{background:none;border-radius:50%;aspect-ratio:1;padding:0;font-size:19px;position:relative;margin:2px auto;width:44px}
+.gr .sel{background:var(--rd)}.gr u{position:absolute;bottom:3px;left:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:var(--gd)}
+.dt{color:var(--mu);font-size:13px;margin:18px 0 8px;text-transform:uppercase}.no{color:var(--mu);padding:14px 0;border-top:1px solid var(--ln)}
+.ev{display:flex;gap:10px;background:var(--cd);border-radius:12px;padding:12px}.ev s{width:4px;border-radius:2px;background:var(--rd)}.ev small{display:block;color:var(--mu)}.ev p{margin:6px 0 0}
+.pk{background:var(--cd);border-radius:14px;padding:10px;margin-bottom:8px}.pk div{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}.pk button{background:#2c2c2e;padding:10px 0}.pk .sel{background:var(--rd)}
+.lk{text-align:center;padding-top:30px}.bt{font-size:76px;font-weight:300}.dd{font-size:18px}.lk p{margin:34px 0 12px}
+.dots{height:20px}.dots i{display:inline-block;width:12px;height:12px;border-radius:50%;background:#fff;margin:0 5px}
+.pad{display:grid;grid-template-columns:repeat(3,76px);gap:16px;justify-content:center;margin-top:24px}.pad button{width:76px;height:76px;border-radius:50%;font-size:30px;padding:0;background:#ffffff26}.pad .e{visibility:hidden}
+.sh{animation:sh .4s}@keyframes sh{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--ln)}.row input{width:auto}
+h2{font-family:Cinzel,Georgia,serif;color:var(--gd);margin:20px 0 6px;font-size:17px}.mu{color:var(--mu);font-size:13px;line-height:1.5}
+.us{background:var(--cd);border-radius:12px;padding:12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;gap:8px}.us.off{opacity:.5}.us button{padding:8px 10px;font-size:13px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style></head><body><div id="app"></div>
+<script>
+const MN=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],SU=["","♣","♥","♠","♦"],SN=["","tréboles","corazones","picas","diamantes"],DN=["L","M","X","J","V","S","D"];
+let S={cfg:{years:"all",lock:false,remote:true,corners:true,voice:true,vib:true,keys:["ArrowUp","ArrowDown","ArrowRight","ArrowLeft"],tpl:"Dejo esta predicción por acá porque estoy seguro de que una persona va a elegir justamente {carta}."},session:null,pred:null,lastOk:0,gh:null,plain:{}};
+try{const j=JSON.parse(localStorage.getItem("cdf")||"null");if(j){const c=Object.assign({},S.cfg,j.cfg||{});Object.assign(S,j);S.cfg=c}}catch(e){}
+const save=()=>{try{localStorage.setItem("cdf",JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s),app=$("#app"),esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let view="login",cv={y:2027,m:0,pick:0},sel=null,learn=-1,err="",lk="",rc={f:0,raw:{}},lt=null,lf=false,tap=0;
+const maxY=()=>S.cfg.years==="all"?2050:2027,hm=()=>new Date().toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit",hour12:false});
+const art=v=>v===11||v===12?"la ":"el ",vn=v=>({1:"as",11:"jota",12:"reina",13:"rey"}[v]||String(v));
+const cardTxt=p=>art(p.v)+vn(p.v)+" de "+SN[p.s],note=()=>esc(S.cfg.tpl.replace("{carta}",cardTxt(S.pred)));
+const valid=()=>{const s=S.session;return !!s&&(s.admin?!!S.gh:true)};
+const buzz=()=>{if(S.cfg.vib&&navigator.vibrate)navigator.vibrate(8)};
+function logo(w){return `<svg width="${w}" viewBox="0 0 200 200"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".45" stop-color="#d4af37"/><stop offset="1" stop-color="#6e4f0e"/></linearGradient><radialGradient id="g2" cx=".3" cy=".2" r="1"><stop offset="0" stop-color="#2b3a6e"/><stop offset="1" stop-color="#04050c"/></radialGradient><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#cfd1da"/></linearGradient><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6a5f"/><stop offset="1" stop-color="#b3150e"/></linearGradient><filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity=".65"/></filter></defs><rect x="6" y="6" width="188" height="188" rx="46" fill="url(#g1)"/><rect x="14" y="14" width="172" height="172" rx="39" fill="url(#g2)"/><g fill="#f5dc8a"><circle cx="38" cy="44" r="1.6"/><circle cx="170" cy="96" r="1.3"/><circle cx="30" cy="150" r="1.4"/><circle cx="96" cy="30" r="1.2"/></g><g filter="url(#sh)"><rect x="46" y="52" width="108" height="108" rx="13" fill="url(#g3)"/><path d="M46 65a13 13 0 0 1 13-13h82a13 13 0 0 1 13 13v15H46z" fill="url(#g4)"/><rect x="68" y="42" width="9" height="22" rx="4.5" fill="url(#g1)"/><rect x="123" y="42" width="9" height="22" rx="4.5" fill="url(#g1)"/><g fill="#c3c6d2"><rect x="60" y="92" width="14" height="9" rx="2"/><rect x="80" y="92" width="14" height="9" rx="2"/><rect x="100" y="92" width="14" height="9" rx="2"/><rect x="60" y="108" width="14" height="9" rx="2"/><rect x="80" y="108" width="14" height="9" rx="2"/><rect x="60" y="124" width="14" height="9" rx="2"/></g><rect x="100" y="108" width="14" height="9" rx="2" fill="#d4af37"/></g><g filter="url(#sh)" transform="rotate(14 138 142)"><rect x="118" y="112" width="44" height="60" rx="6" fill="#fff" stroke="#d4af37" stroke-width="2"/><path d="M140 150c-10-7-14-12-14-17a7 7 0 0 1 14-3a7 7 0 0 1 14 3c0 5-4 10-14 17z" fill="#c8102e"/></g><path d="M160 30l3 10 10 3-10 3-3 10-3-10-10-3 10-3z" fill="#ffe27a"/><path d="M14 64C14 36 36 14 64 14h72c28 0 50 22 50 50-40-12-110 4-172 40z" fill="#fff" opacity=".07"/></svg>`}
+const sbar=()=>`<div class="sb" data-a="dbl"><b class="clk">${hm()}</b><span>5G ▮</span></div>`;
+const zones=()=>S.cfg.corners&&S.cfg.remote?["tl","bl","br","tr"].map((z,i)=>`<i class="z ${z}" data-z="${i}"></i>`).join(""):"";
+function go(v){view=v;err="";render()}
+function render(){
+ if(view!=="login"&&view!=="adm"&&!valid()){S.session=null;save();view="login"}
+ let h="";
+ if(view==="login")h=`<div class="ctr"><div data-ad>${logo(150)}</div><h1>CALENDARIO DEL FUTURO</h1><small>MAGO CAMILO</small><div class="col"><input id="key" placeholder="Clave de usuario" autocapitalize="characters"><button class="gold" data-a="login">Entrar</button><div class="mu" style="color:var(--rd)">${err}</div></div></div>`;
+ else if(view==="menu"){const p=S.pred;h=`<div class="ctr">${logo(110)}<h1>CALENDARIO DEL FUTURO</h1><small>MAGO CAMILO</small><div class="mu" style="margin-top:14px">${p?`Cargado: ${p.d} ${MN[p.m-1]} ${p.y} · ${vn(p.v)} ${SU[p.s]}`:"Sin predicción cargada"}</div><div class="col"><button class="gold" data-a="open">Abrir calendario</button><button data-a="set">Ajustes</button>${S.session.admin?'<button data-a="keys">Panel admin</button>':""}<button data-a="clear">Borrar predicción</button><button data-a="out">Cerrar sesión</button></div></div>`}
+ else if(view==="cal")h=sbar()+calHTML()+zones();
+ else if(view==="lock")h=sbar()+`<div class="lk"><div class="bt" data-lp>${hm()}</div><div class="dd">${new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"})}</div><p>Introduce el código</p><div class="dots ${err?"sh":""}">${"<i></i>".repeat(lk.length)}</div><div class="pad">${[1,2,3,4,5,6,7,8,9,"e",0,"⌫"].map(k=>`<button class="${k==="e"?"e":""}" data-a="k" data-k="${k}">${k==="e"?"":k}</button>`).join("")}</div></div>`+zones();
+ else if(view==="set")h=setHTML();
+ else if(view==="keys")h=S.gh?keysHTML():admHTML();
+ else if(view==="adm")h=admHTML();
+ app.innerHTML=h;
+}
+function calHTML(){const{y,m}=cv,f=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate(),is=(d)=>S.pred&&S.pred.y===y&&S.pred.m===m+1&&S.pred.d===d;let c="<i></i>".repeat(f);
+ for(let d=1;d<=n;d++)c+=`<button data-a="day" data-d="${d}" class="${sel===d?"sel":""}">${d}${is(d)?"<u></u>":""}</button>`;
+ const yrs=[];for(let i=2027;i<=maxY();i++)yrs.push(`<button data-a="py" data-y="${i}" class="${i===y?"sel":""}">${i}</button>`);
+ const pk=cv.pick?`<div class="pk">${maxY()>2027?`<div>${yrs.join("")}</div>`:""}<div>${MN.map((q,i)=>`<button data-a="pm" data-i="${i}" class="${i===m?"sel":""}">${q.slice(0,3)}</button>`).join("")}</div></div>`:"";
+ const det=sel?`<div class="dt">${sel} de ${MN[m]} de ${y}</div>`+(is(sel)?`<div class="ev"><s></s><div><b>Predicción</b><small>Todo el día</small><p>${note()}</p></div></div>`:'<div class="no">Sin eventos</div>'):"";
+ return `<div class="hd"><button data-a="nav" data-d="-1">‹</button><button class="tt" data-a="pick" data-lp>${MN[m]} ${y}</button><button data-a="nav" data-d="1">›</button></div>${pk}<div class="wd">${DN.map(x=>`<span>${x}</span>`).join("")}</div><div class="gr" id="gr">${c}</div>${det}`}
+const tog=(k,l)=>`<label class="row"><span>${l}</span><input type="checkbox" data-a="tg" data-k="${k}" ${S.cfg[k]?"checked":""}></label>`;
+function setHTML(){const o=(a,f)=>a.map(f).join("");return `<div style="padding-top:14px"><button data-a="menu">‹ Menú</button>
+<h2>Efecto</h2><label class="row"><span>Años del calendario</span><select data-c="yrs" style="width:auto"><option value="all" ${S.cfg.years==="all"?"selected":""}>2027 – 2050</option><option value="one" ${S.cfg.years!=="all"?"selected":""}>Solo 2027</option></select></label>
+${tog("remote","Control remoto de 4 botones")}${tog("corners","Esquinas ocultas como botones")}${tog("voice","Control por voz")}${tog("lock","Pantalla de bloqueo con teclado")}${tog("vib","Vibración al marcar")}
+<h2>Botones del control</h2><div class="g2">${o(["B1 · +1 (arriba)","B2 · +10 (abajo)","B3 · +5 (lado)","B4 · siguiente"],(t,i)=>`<button data-a="learn" data-i="${i}">${t}<br><small>${learn===i?"Pulsa una tecla…":esc(S.cfg.keys[i])}</small></button>`)}</div>
+<p class="mu">Orden: ${S.cfg.years==="all"?"año (+1 por año desde 2027), ":""}mes, día, valor de la carta, palo (1♣ 2♥ 3♠ 4♦). B4 pasa al siguiente dato; al terminar el palo se carga. Mantener B4 reinicia. Esquinas: ↖ B1, ↙ B2, ↘ B3, ↗ B4. Doble toque en la barra superior: activa/desactiva el micrófono.</p>
+<h2>Teclado de desbloqueo</h2><p class="mu">Escribe DDMMVVS${S.cfg.years==="all"?"AA":""}: día, mes, valor (01–13), palo (1–4)${S.cfg.years==="all"?" y año de dos cifras (27–50)":""}. Ejemplo: 2202051${S.cfg.years==="all"?"27":""} = 22 febrero, 5 de corazones.</p>
+<h2>Voz</h2><p class="mu">Di por ejemplo: “veintidós de febrero, cinco de corazones”. Entiende números, as, jota, reina y rey.</p>
+<h2>Texto de la nota</h2><textarea data-c="tpl" rows="3">${esc(S.cfg.tpl)}</textarea><p class="mu">{carta} se reemplaza por la carta elegida.</p>
+<h2>Cargar manualmente</h2><div class="g2"><select id="mm">${o(MN,(q,i)=>`<option value="${i+1}">${q}</option>`)}</select><input id="md" type="number" min="1" max="31" placeholder="Día"><select id="mv">${o([...Array(13)],(_,i)=>`<option value="${i+1}">${vn(i+1)}</option>`)}</select><select id="ms">${o([1,2,3,4],i=>`<option value="${i}">${SU[i]} ${SN[i]}</option>`)}</select>${S.cfg.years==="all"?`<select id="my">${o([...Array(24)],(_,i)=>`<option>${2027+i}</option>`)}</select>`:""}<button class="gold" data-a="man">Cargar</button></div>
+</div>`}
+function keysHTML(){return `<div style="padding-top:14px"><button data-a="menu">‹ Menú</button><h2>Claves de usuario</h2><div class="g2"><input id="un" placeholder="Nombre"><button class="gold" data-a="mk">Crear clave</button></div>${KS.msg?`<p class="mu" style="color:var(--gd)">${esc(KS.msg)}</p>`:""}${KS.list.map((u,i)=>`<div class="us ${u.on?"":"off"}"><div><b>${esc(u.n||"Sin nombre")}</b><br><small>${S.plain[u.h]||"clave oculta"} · ${u.on?"activa":"revocada"} · ${u.c||""}</small></div><div><button data-a="rv" data-i="${i}">${u.on?"Revocar":"Activar"}</button> <button data-a="dl" data-i="${i}">✕</button></div></div>`).join("")||'<p class="mu">Aún no hay claves.</p>'}</div>`}
+function admHTML(){return `<div class="ctr">${logo(90)}<h1>ADMINISTRADOR</h1><div class="col"><input id="rp" placeholder="usuario/repositorio" value="${esc(S.gh?S.gh.repo:"")}"><input id="tk" type="password" placeholder="Token de GitHub"><button class="gold" data-a="vf">Entrar como administrador</button><button data-a="back">Volver</button><div class="mu" style="color:var(--rd)">${err}</div></div></div>`}
+let KS={list:[],sha:null,msg:""};
+const GH=(q,o)=>fetch("https://api.github.com/repos/"+S.gh.repo+q,Object.assign({headers:{Authorization:"Bearer "+S.gh.token,Accept:"application/vnd.github+json"}},o||{}));
+async function sha(k){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(k.replace(/\s/g,"").toUpperCase()));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+async function chk(h){try{const r=await fetch("keys.json?"+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;const l=await r.json();return l.some(x=>x.h===h&&x.on)}catch(e){return null}}
+async function recheck(){const s=S.session;if(!s||s.admin)return;const r=await chk(s.h);if(r===false||(r===null&&Date.now()-S.lastOk>2592e5)){S.session=null;save();go("login")}else if(r){S.lastOk=Date.now();save()}}
+async function loadKeys(){try{const r=await GH("/contents/keys.json");if(r.status===404){KS={list:[],sha:null,msg:""};return}const j=await r.json();KS.sha=j.sha;KS.list=JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\s/g,"")))));KS.msg=""}catch(e){KS.msg="No se pudo leer keys.json"}}
+async function putKeys(m){try{const r=await GH("/contents/keys.json",{method:"PUT",body:JSON.stringify({message:m,content:btoa(unescape(encodeURIComponent(JSON.stringify(KS.list,null,1)))),sha:KS.sha||undefined})});const j=await r.json();if(!r.ok)throw 0;KS.sha=j.content.sha;KS.msg="Guardado. Puede tardar unos minutos en llegar a los teléfonos."}catch(e){await loadKeys();KS.msg="Error al guardar: revisa el token y los permisos"}}
+/* ---- carga de datos ---- */
+function commit(d){d.d=Math.min(d.d,new Date(d.y,d.m,0).getDate());S.pred=d;save();rc={f:0,raw:{}};lk="";buzz();if(view==="lock")go("cal");else if(view==="cal")render()}
+const MX={m:12,d:31,v:13,s:4},act=(f,r)=>f==="y"?2027+(r%24):r<1?1:((r-1)%MX[f])+1,fields=()=>(S.cfg.years==="all"?["y"]:[]).concat(["m","d","v","s"]);
+function press(b){if(!S.cfg.remote||(view!=="cal"&&view!=="lock"))return;const F=fields();if(b===3){if(++rc.f>=F.length){const r=rc.raw;commit({y:S.cfg.years==="all"?act("y",r.y||0):2027,m:act("m",r.m||0),d:act("d",r.d||0),v:act("v",r.v||0),s:act("s",r.s||0)})}return}rc.raw[F[rc.f]]=(rc.raw[F[rc.f]]||0)+[1,10,5][b];buzz()}
+const bd=b=>{if(b===3){lf=false;lt=setTimeout(()=>{lf=true;rc={f:0,raw:{}};buzz()},800)}else press(b)},bu=b=>{if(b===3){clearTimeout(lt);if(!lf)press(3)}};
+addEventListener("keydown",e=>{if(learn>=0){e.preventDefault();S.cfg.keys[learn]=e.code||e.key;learn=-1;save();render();return}if(!S.cfg.remote||(view!=="cal"&&view!=="lock"))return;const i=S.cfg.keys.indexOf(e.code||e.key);if(i<0)return;e.preventDefault();if(!e.repeat)bd(i)});
+addEventListener("keyup",e=>{const i=S.cfg.keys.indexOf(e.code||e.key);if(i>=0&&(view==="cal"||view==="lock")&&S.cfg.remote)bu(i)});
+/* ---- voz ---- */
+const NW={uno:1,un:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,once:11,doce:12,trece:13,catorce:14,quince:15,dieciseis:16,diecisiete:17,dieciocho:18,diecinueve:19,veinte:20,veintiuno:21,veintidos:22,veintitres:23,veinticuatro:24,veinticinco:25,veintiseis:26,veintisiete:27,veintiocho:28,veintinueve:29,treinta:30,as:1,jota:11,reina:12,rey:13,j:11,q:12,k:13},SW={trebol:1,treboles:1,corazon:2,corazones:2,pica:3,picas:3,diamante:4,diamantes:4,rombo:4,rombos:4};
+function parseV(t){const w=t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim().split(" ");let run=null,o={};w.forEach(x=>{const n=/^\d+$/.test(x)?+x:NW[x];const mi=["setiembre"].includes(x)?8:MN.map(q=>q.normalize("NFD").replace(/[\u0300-\u036f]/g,"")).indexOf(x);
+ if(n!==undefined&&n!==null){run=(run||0)+n}else if(x==="y"||x==="de"){}else if(mi>=0){if(run>=1&&run<=31)o.d=run;o.m=mi+1;run=null}else if(SW[x]){if(run>=1&&run<=13)o.v=run;o.s=SW[x];run=null}else{if(run>=2027&&run<=2050)o.y=run;run=null}});
+ if(run>=2027&&run<=2050)o.y=run;return o.d&&o.m&&o.v&&o.s?{y:S.cfg.years==="all"?(o.y||2027):2027,m:o.m,d:o.d,v:o.v,s:o.s}:null}
+let rec=null,on=false,buf="";
+function mic(){if(!S.cfg.voice)return;if(on){on=false;try{rec.stop()}catch(e){}return}const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return;rec=new R();rec.lang="es-ES";rec.continuous=true;rec.interimResults=true;buf="";
+ rec.onresult=e=>{let t="";for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript+" ";const d=parseV(buf+" "+t);if(d){buf="";commit(d)}else if(e.results[e.results.length-1].isFinal)buf=(buf+" "+t).slice(-200)};
+ rec.onend=()=>{if(on)try{rec.start()}catch(e){}};on=true;try{rec.start()}catch(e){}}
+/* ---- eventos ---- */
+const A={
+ async login(){const k=$("#key").value;if(!k.trim())return;const h=await sha(k),r=await chk(h);if(r===true){S.session={h};S.lastOk=Date.now();save();go("menu")}else{err=r===null?"Sin conexión con el servidor":"Clave no válida o revocada";render()}},
+ async vf(){const repo=$("#rp").value.trim(),token=$("#tk").value.trim();try{const r=await fetch("https://api.github.com/repos/"+repo,{headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json"}});const j=await r.json();if(!r.ok||!j.permissions||!j.permissions.push)throw 0;S.gh={repo,token};S.session={admin:1};save();await loadKeys();go("keys")}catch(e){err="Repositorio o token no válidos (se necesita permiso de escritura)";render()}},
+ back(){go("login")},
+ async open(){if(S.session&&!S.session.admin){const r=await chk(S.session.h);if(r===false){S.session=null;save();go("login");return}if(r)S.lastOk=Date.now()}cv={y:2027,m:0,pick:0};sel=null;lk="";go(S.cfg.lock?"lock":"cal")},set(){go("set")},async keys(){await loadKeys();go("keys")},menu(){go("menu")},out(){if(S.session&&S.session.admin)S.gh=null;S.session=null;save();go("login")},
+ clear(){S.pred=null;rc={f:0,raw:{}};save();render()},
+ nav(el){const d=+el.dataset.d;let m=cv.m+d,y=cv.y;if(m<0){m=11;y--}if(m>11){m=0;y++}if(y<2027||y>maxY())return;cv.m=m;cv.y=y;sel=null;render()},
+ pick(){if(!lf2)cv.pick=cv.pick?0:1;render()},pm(el){cv.m=+el.dataset.i;cv.pick=0;sel=null;render()},py(el){cv.y=+el.dataset.y;render()},day(el){sel=+el.dataset.d;render()},
+ dbl(){const t=Date.now();if(t-tap<450){tap=0;mic()}else tap=t},
+ k(el){const k=el.dataset.k;if(k==="⌫")lk=lk.slice(0,-1);else if(k!=="e"){lk+=k;buzz();const n=S.cfg.years==="all"?9:7;if(lk.length===n){const d={d:+lk.slice(0,2),m:+lk.slice(2,4),v:+lk.slice(4,6),s:+lk[6],y:n===9?2000+ +lk.slice(7):2027};if(d.d>=1&&d.d<=31&&d.m>=1&&d.m<=12&&d.v>=1&&d.v<=13&&d.s>=1&&d.s<=4&&d.y>=2027&&d.y<=2050){commit(d);return}err="x";lk="";render();err="";return}}render()},
+ tg(el){S.cfg[el.dataset.k]=el.checked;save()},learn(el){learn=+el.dataset.i;render()},
+ man(){const g=i=>+$("#"+i).value;if(!g("md"))return;commit({y:$("#my")?g("my"):2027,m:g("mm"),d:g("md"),v:g("mv"),s:g("ms")});go("menu")},
+ async mk(){const n=$("#un").value.trim(),c="ABCDEFGHJKMNPQRSTUVWXYZ23456789",a=new Uint8Array(12);crypto.getRandomValues(a);const k=[...a].map(x=>c[x%c.length]).join("").replace(/(.{4})(.{4})(.{4})/,"$1-$2-$3"),h=await sha(k);KS.list.push({n,h,on:true,c:new Date().toISOString().slice(0,10)});S.plain[h]=k;save();await putKeys("Crear clave");KS.msg="Clave nueva: "+k+" · "+KS.msg;render()},
+ async rv(el){const u=KS.list[+el.dataset.i];u.on=!u.on;await putKeys(u.on?"Activar clave":"Revocar clave");render()},async dl(el){KS.list.splice(+el.dataset.i,1);await putKeys("Eliminar clave");render()}
+};
+let lf2=false,lpt=null;
+document.addEventListener("click",e=>{const a=e.target.closest("[data-a]");if(a&&A[a.dataset.a])A[a.dataset.a](a)});
+document.addEventListener("change",e=>{const c=e.target.dataset.c;if(!c)return;if(c==="yrs")S.cfg.years=e.target.value;if(c==="tpl")S.cfg.tpl=e.target.value||S.cfg.tpl;if(c==="adm"&&e.target.value.trim())S.adminKey=e.target.value.trim();save()});
+document.addEventListener("pointerdown",e=>{const z=e.target.closest("[data-z]");if(z){e.preventDefault();bd(+z.dataset.z)}const ad=e.target.closest("[data-ad]");if(ad)lpt=setTimeout(()=>go("adm"),1500);const l=e.target.closest("[data-lp]");if(l){lf2=false;lpt=setTimeout(()=>{lf2=true;go("menu")},900)}});
+document.addEventListener("pointerup",e=>{const z=e.target.closest("[data-z]");if(z)bu(+z.dataset.z);clearTimeout(lpt);setTimeout(()=>lf2=false,50)});
+document.addEventListener("pointercancel",()=>{clearTimeout(lt);clearTimeout(lpt)});
+let sx=0;document.addEventListener("touchstart",e=>{sx=e.touches[0].clientX},{passive:true});
+document.addEventListener("touchend",e=>{if(view!=="cal"||!e.target.closest("#gr"))return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>60)A.nav({dataset:{d:dx<0?1:-1}})},{passive:true});
+setInterval(()=>document.querySelectorAll(".clk").forEach(x=>x.textContent=hm()),20000);
+if(valid())view="menu";render();recheck();
+</script></body></html>
